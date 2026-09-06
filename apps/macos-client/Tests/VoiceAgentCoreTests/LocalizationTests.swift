@@ -54,6 +54,25 @@ final class LocalizationTests: XCTestCase {
         XCTAssertEqual(L10n.text("controls.start"), "Start")
     }
 
+    func testPhaseLabelsSwitchInBothDirectionsWithoutChangingSessionState() throws {
+        let phases: [ConversationPhase] = [
+            .disconnected, .connecting, .recording, .transcribing,
+            .thinking, .speaking, .failed,
+        ]
+        var state = ConversationState()
+        for phase in phases {
+            state.phase = phase
+            for language in ["pl", "en", "pl"] {
+                XCTAssertTrue(L10n.configure(language: language, resourceRoot: resourceRoot))
+                let catalog = try LocalizationCatalog.load(language: language, resourceRoot: resourceRoot)
+                XCTAssertEqual(state.phase.displayName, catalog.text("phase.\(phase.rawValue)"))
+                XCTAssertEqual(state.phase, phase, "Language changes must not require a session transition")
+            }
+        }
+        XCTAssertTrue(L10n.configure(language: "en", resourceRoot: resourceRoot))
+        XCTAssertEqual(ConversationPhase.disconnected.displayName, "Disconnected")
+    }
+
     private func placeholders(_ value: String) -> [String] {
         let expression = try! NSRegularExpression(
             pattern: #"%(?:\d+\$)?[-+0# ]*(?:\d+|\*)?(?:\.\d+)?(?:ll)?[a-zA-Z@]"#

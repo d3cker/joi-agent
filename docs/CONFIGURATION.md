@@ -57,6 +57,12 @@ XCTest suites asserting localized text must initialize `L10n` with an explicit
 catalog directory and language, just as app startup does with bundle resources.
 Do not rely on the process-wide catalog left by a previously executed test.
 
+SwiftUI leaf views must receive localized text from an observing parent (or
+observe language state themselves). The session status pill takes its label
+as an explicit input: changing language must redraw it even when the session
+phase stays disconnected. Reading the global `L10n` catalog only inside an
+otherwise unchanged child view does not establish a SwiftUI dependency.
+
 ## Skills
 
 Bundled defaults live in `services/voice-backend/skills`. Installed, editable

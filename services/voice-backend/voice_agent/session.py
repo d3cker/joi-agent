@@ -273,6 +273,11 @@ class StreamingMarkdownSpeechSegmenter:
 
     @staticmethod
     def _markup_is_stable(source: str) -> bool:
+        # A trailing numeric separator may belong to the next decimal token.
+        # Emitting "1." now makes a later "5 lb" rewrite spoken history;
+        # defer until a following character disambiguates it, or final flush.
+        if re.search(r"\d[.,]$", source):
+            return False
         # Escaped Markdown controls do not participate in delimiter balance.
         value = re.sub(r"\\.", "", source)
         if value.count("```") % 2:

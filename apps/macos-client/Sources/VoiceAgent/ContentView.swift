@@ -124,7 +124,10 @@ struct ContentView: View {
                 }
                 .buttonStyle(.borderless)
                 .help(store.text(store.contextPanelVisible ? "context.hide" : "context.show"))
-                StatusPill(phase: store.state.phase)
+                StatusPill(
+                    phase: store.state.phase,
+                    label: store.state.phase.displayName
+                )
             }
             StatsBar(store: store)
         }
@@ -418,6 +421,10 @@ private struct ToolActivityView: View {
 
 private struct StatusPill: View {
     let phase: ConversationPhase
+    // Resolve localization in the observing parent. If only phase is passed,
+    // SwiftUI can reuse this view after a language change because its inputs
+    // are unchanged; the global L10n catalog is not an observable dependency.
+    let label: String
 
     private var color: Color {
         switch phase {
@@ -434,7 +441,7 @@ private struct StatusPill: View {
     var body: some View {
         HStack(spacing: 7) {
             Circle().fill(color).frame(width: 8, height: 8)
-            Text(phase.displayName).font(.caption.weight(.medium))
+            Text(verbatim: label).font(.caption.weight(.medium))
         }
         .padding(.horizontal, 11)
         .padding(.vertical, 7)

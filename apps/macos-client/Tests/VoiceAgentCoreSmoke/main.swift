@@ -345,6 +345,15 @@ require(L10n.configure(language: "en", resourceRoot: localizationRoot), "English
 require(ConversationPhase.recording.displayName == "Listening", "English runtime localization")
 require(L10n.configure(language: "pl", resourceRoot: localizationRoot), "Polish localization load")
 require(ConversationPhase.recording.displayName == "Słucham", "Polish runtime localization")
+for phase: ConversationPhase in [.disconnected, .connecting, .recording, .transcribing, .thinking, .speaking, .failed] {
+    for language in ["pl", "en", "pl"] {
+        require(L10n.configure(language: language, resourceRoot: localizationRoot), "phase language switch")
+        let catalog = language == "pl" ? polishCatalog : englishCatalog
+        require(phase.displayName == catalog.text("phase.\(phase.rawValue)"), "phase label must update without a phase change")
+    }
+}
+require(L10n.configure(language: "en", resourceRoot: localizationRoot), "restore English catalog")
+require(ConversationPhase.disconnected.displayName == "Disconnected", "disconnected English label")
 
 let contextEvent = try ProtocolCodec.decode(
     text: #"{"type":"context.metrics","input_tokens":1200,"output_tokens":80,"context_size":128000,"context_used_tokens":1200,"context_remaining_tokens":126800,"categories":{"system_prompt":120,"skills":180,"tools":300,"session":600}}"#

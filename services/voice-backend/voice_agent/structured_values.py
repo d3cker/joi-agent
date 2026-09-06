@@ -14,6 +14,8 @@ import ipaddress
 import re
 from typing import Callable, Mapping
 
+from .unit_catalog import SPACED_ONLY_ALIASES, TERMINAL_ONLY_ALIASES, UNIT_CATALOG
+
 
 PluralRule = Callable[[Decimal], str]
 
@@ -23,6 +25,7 @@ class UnitLexeme:
     key: str
     aliases: tuple[str, ...]
     forms: Mapping[str, str]
+    gender: str = "m"
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,12 +42,13 @@ class StructuredSpeechPack:
     maximum: str
     plural_rule: PluralRule
     units: tuple[UnitLexeme, ...]
+    quantity_rule: Callable[[str, UnitLexeme], str] = lambda raw, unit: raw
 
 
 def _polish_plural(value: Decimal) -> str:
     absolute = abs(value)
     if absolute != absolute.to_integral_value():
-        return "many"
+        return "fraction"
     integer = int(absolute)
     if integer == 1:
         return "one"
@@ -134,16 +138,44 @@ _EN_UNITS = (
 )
 
 
+def _polish_quantity(raw: str, unit: UnitLexeme) -> str:
+    """Agree whole feminine quantities without changing decimal semantics."""
+    value = Decimal(raw.replace(",", "."))
+    if unit.gender != "f" or value != value.to_integral_value():
+        return raw
+    from .polish_numbers import integer_to_polish
+
+    number = int(value)
+    words = integer_to_polish(number)
+    if abs(number) == 1:
+        words = re.sub(r"jeden$", "jedna", words)
+    elif abs(number) % 10 == 2 and abs(number) % 100 != 12:
+        words = re.sub(r"dwa$", "dwie", words)
+    return words
+
+
+def _catalog_units(language: str) -> tuple[UnitLexeme, ...]:
+    entries = []
+    for aliases, polish, english, gender in UNIT_CATALOG:
+        symbols = tuple(aliases.split("|"))
+        one, few, many, fraction = polish.split("|")
+        en_one, en_many = english.split("|")
+        forms = ({"one": one, "few": few, "many": many, "fraction": fraction}
+                 if language == "pl" else _forms(en_one, en_many))
+        entries.append(UnitLexeme("catalog:" + symbols[0], symbols, forms, gender))
+    return tuple(entries)
+
+
 STRUCTURED_SPEECH_PACKS = {
     "pl": StructuredSpeechPack(
         "pl", "adres", "adres IP sześć", "prefiks", "port", "kropka",
         "dwukropek", "podwójny dwukropek", "minimum", "maksimum",
-        _polish_plural, _PL_UNITS,
+        _polish_plural, _PL_UNITS + _catalog_units("pl"), _polish_quantity,
     ),
     "en": StructuredSpeechPack(
         "en", "address", "IPv six address", "prefix", "port", "dot",
         "colon", "double colon", "minimum", "maximum",
-        _english_plural, _EN_UNITS,
+        _english_plural, _EN_UNITS + _catalog_units("en"),
     ),
 }
 
@@ -157,15 +189,28 @@ def _all_aliases() -> tuple[str, ...]:
 
 
 _NUMBER = r"[+-]?\d+(?:[.,]\d+)?"
+
+
+def _alias_pattern() -> str:
+    # Do not guess units from ordinary words ("2 a potem", "5 in stock").
+    # A terminal-only alias can still precede a sentence end or table delimiter.
+    terminal = r"(?=\s*(?:$|[.,;:!?\)\]\|]))"
+    return "|".join(
+        (r"(?<=\s)" if alias in SPACED_ONLY_ALIASES else "")
+        + re.escape(alias) + (terminal if alias in TERMINAL_ONLY_ALIASES else "")
+        for alias in _all_aliases()
+    )
+
+
 MEASUREMENT = re.compile(
     rf"(?<![\w.])(?P<value>{_NUMBER})\s*(?P<unit>"
-    + "|".join(re.escape(alias) for alias in _all_aliases())
-    + r")(?![\w/])"
+    + _alias_pattern()
+    + r")(?![\w/²³^])"
 )
 NUMERIC_RANGE = re.compile(
     rf"(?<![\w.])(?P<start>{_NUMBER})\s*[\u2013\u2014]\s*(?P<end>{_NUMBER})"
-    rf"(?:\s*(?P<unit>{'|'.join(re.escape(alias) for alias in _all_aliases())}))?"
-    r"(?![\w/])"
+    rf"(?:\s*(?P<unit>{_alias_pattern()}))?"
+    r"(?![\w/²³^])"
 )
 IPV4_ENDPOINT = re.compile(
     r"(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?:(?:/\d{1,2})|(?::\d{1,5}))?(?!\d|\.\d)"
@@ -199,7 +244,8 @@ def verbalize_measurement(value: str, language: str) -> str | None:
     except InvalidOperation:
         return None
     category = pack.plural_rule(quantity)
-    return f"{raw_number} {unit.forms[category]}"
+    words = pack.quantity_rule(raw_number, unit)
+    return f"{words} {unit.forms.get(category, unit.forms['many'])}"
 
 
 def verbalize_numeric_range(value: str, language: str) -> str | None:
@@ -229,7 +275,9 @@ def verbalize_numeric_range(value: str, language: str) -> str | None:
             quantity = Decimal(end.replace(",", "."))
         except InvalidOperation:
             return None
-        suffix = " " + unit.forms[pack.plural_rule(quantity)]
+        suffix = " " + unit.forms.get(pack.plural_rule(quantity), unit.forms["many"])
+        start = pack.quantity_rule(start, unit)
+        end = pack.quantity_rule(end, unit)
     return f"{pack.minimum} {start}, {pack.maximum} {end}{suffix}"
 
 

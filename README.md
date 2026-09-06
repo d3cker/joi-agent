@@ -42,6 +42,31 @@ Supply a voice recording you have permission to use and its exact transcript.
 Configuration and skills: `~/.config/joi` on each machine. Backend runtime,
 models and sessions: `~/.local/share/joi`. These are separate filesystems.
 
+## Voice references
+
+Higgs uses a short **reference recording** to reproduce a speaker's voice;
+it is not a training dataset or a recording of your commands. The installer
+requires two matching files:
+
+- `--voice-reference`: clean speech from one consenting speaker, in WAV or FLAC.
+- `--voice-transcript`: a UTF-8 text file containing exactly what that recording
+  says, in its original language—not a system prompt or the agent's reply.
+  The matching text helps the model reproduce the voice accurately.
+
+Record your own voice, ask someone for a recording and permission, or use a
+sample whose terms permit your intended use. Our development setup started
+with the English female [en_f1.flac sample](https://storage.googleapis.com/chatterbox-demo-samples/mtl_prompts/en_f1.flac)
+from the [official Chatterbox demo](https://github.com/resemble-ai/chatterbox/blob/master/multilingual_app.py).
+We kept that reference when switching to Higgs, then used Higgs to generate a
+short Polish recording in the same voice. Pairing that generated recording
+with its Polish transcript provided a language-matched reference, helping
+reduce unwanted English pronunciation in Polish responses. Separate language
+references are optional; see [speech profiles](docs/CONFIGURATION.md#speech-profiles-and-migration).
+
+The installer generates `ack.wav` (the quick Polish acknowledgement) itself;
+you do not need to supply it. Reference recordings are not bundled with Joi.
+Check a sample's usage and redistribution terms before reusing or sharing it.
+
 ## Develop
 
 ```sh

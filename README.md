@@ -8,7 +8,7 @@ a private network, with an independently hosted OpenAI-compatible LLM.
 
 The development setup uses one **RTX 3090** for Whisper large-v3-turbo STT,
 Silero ONNX voice detection and **Higgs TTS 3 4B** speech generation. The LLM is
-**DeepSeek V4 Flash 0731 on two DGX Spark machines**. 
+**DeepSeek V4 Flash 0731 on two DGX Spark machines**.
 
 - Natural end-of-speech detection, sentence-level speech and interruption.
 - Persistent sessions, Markdown tables, tool activity and context telemetry.

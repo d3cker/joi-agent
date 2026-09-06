@@ -15,7 +15,7 @@ EXCLUDED = {"__pycache__", ".pytest_cache", ".venv", ".build", "dist", "runtime"
 
 def source_files(root: Path = ROOT):
     """Allowlist deployable source; never package a workspace recursively."""
-    for name in ("VERSION", "README.md", "AGENTS.md", "install.py", "Makefile", "installer", "docs", "services/voice-backend"):
+    for name in ("VERSION", "README.md", "img/joi.png", "AGENTS.md", "install.py", "Makefile", "installer", "docs", "services/voice-backend"):
         base = root / name
         for path in sorted(base.rglob("*") if base.is_dir() else [base]):
             rel = path.relative_to(root)

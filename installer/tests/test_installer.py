@@ -57,6 +57,7 @@ def test_archive_is_allowlisted_and_contains_installer(tmp_path):
         names = tar.getnames()
         assert "install.py" in names and "installer/models.json" in names
         assert "services/voice-backend/voice_agent/app.py" in names
+        assert "img/joi.png" in names  # Keep the packaged README image usable offline.
         assert all(item.isfile() for item in tar.getmembers())
         assert all(not name.startswith(("/", "outputs/", "work/")) for name in names)
         assert all(not name.endswith((".key", ".wav", ".flac", ".pyc")) for name in names)

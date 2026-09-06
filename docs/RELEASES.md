@@ -26,6 +26,10 @@ weights, virtual environments or historical outputs. ZIP creation uses ditto
 to preserve the .app layout and executable permissions. A source hash is used
 when a checkout has no Git metadata; do not label such a build as a Git commit.
 
+The README illustration `img/joi.png` is explicitly allowlisted in backend
+archives so the packaged documentation has no broken image reference. Other
+files placed in `img/` are not implicitly added to deployment packages.
+
 ## GitHub Actions
 
 .github/workflows/checks.yml runs Linux backend/installer tests and strict

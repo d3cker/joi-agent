@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "local-voice-agent-backend"
-version = "1.2.0"
+version = "1.2.1"
 description = "Network-first voice agent gateway for the Joi macOS client"
 requires-python = ">=3.11"
 dependencies = [

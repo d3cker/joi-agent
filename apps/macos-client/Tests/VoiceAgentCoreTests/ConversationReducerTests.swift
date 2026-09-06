@@ -2,6 +2,17 @@ import XCTest
 @testable import VoiceAgentCore
 
 final class ConversationReducerTests: XCTestCase {
+    override func setUpWithError() throws {
+        // XCTest is not the app bundle: initialize its catalog explicitly,
+        // independently of which localization tests ran before this suite.
+        let root = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Resources/Localization", isDirectory: true)
+        XCTAssertTrue(L10n.configure(language: "en", resourceRoot: root))
+    }
+
     func testMarkdownDisplayRendererRemovesControlsAndPreservesContent() {
         let rendered = MarkdownDisplayRenderer.render(
             "**Ważne** i *kursywa* z [odnośnikiem](https://example.com)."

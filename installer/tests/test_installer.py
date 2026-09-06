@@ -122,19 +122,23 @@ def test_source_allowlist_excludes_named_venvs_and_secrets(tmp_path):
     assert [str(p.relative_to(root)) for p in source_files(root)] == ["services/voice-backend/voice_agent/app.py"]
 
 
-def test_real_certificate_generation_idempotence_and_profile(tmp_path):
+@pytest.mark.parametrize("ip,other_ip", [
+    ("192.0.2.15", "192.0.2.16"),
+    ("2001:db8::15", "2001:db8::16"),
+])
+def test_real_certificate_generation_idempotence_and_profile(tmp_path, ip, other_ip):
     directory = tmp_path / "security"
-    certificates(directory, "192.0.2.15")
+    certificates(directory, ip)
     before = {p.name: p.read_bytes() for p in directory.iterdir()}
-    certificates(directory, "192.0.2.15")
+    certificates(directory, ip)
     assert before == {p.name: p.read_bytes() for p in directory.iterdir()}
     ssl.create_default_context(cafile=str(directory / "ca.crt"))
     with pytest.raises(subprocess.CalledProcessError):
-        certificates(directory, "192.0.2.16")
+        certificates(directory, other_ip)
     secrets = tmp_path / "backend/secrets"
     atomic_write(secrets / "client-api-key", b"client-key")
     atomic_write(secrets / "config-api-key", b"admin-key")
-    profile = export_profile(dict(config=str(tmp_path), endpoint=endpoint("192.0.2.15", 8765)))
+    profile = export_profile(dict(config=str(tmp_path), endpoint=endpoint(ip, 8765)))
     assert len(profile["ca_sha256"]) == 64
     assert "PRIVATE KEY" not in json.dumps(profile)
     assert directory.joinpath("server.key").stat().st_mode & 0o777 == 0o600

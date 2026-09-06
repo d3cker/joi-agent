@@ -14,6 +14,11 @@ macOS may request confirmation. Do not add an accept-all certificate delegate.
 A different IP requires an explicitly reissued certificate; this installer
 refuses to silently change or rotate an existing identity.
 
+An installer rerun verifies the existing chain, server-auth purpose and IP SAN
+with `openssl verify -purpose sslserver -verify_ip`. It must not rely on the
+exit status of `openssl x509 -checkip`, which can report a mismatch while
+returning success on OpenSSL 3. Real IPv4 and IPv6 regressions run in CI.
+
 The generated CA is private to this installation. Keep ca.key and server.key
 on Ubuntu, mode 0600. The client receives only ca.crt and its fingerprint.
 A trusted private CA can authenticate other certificates it signs: protect its

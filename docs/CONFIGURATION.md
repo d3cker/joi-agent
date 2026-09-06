@@ -53,6 +53,10 @@ Bootstrap never overwrites customized skill bodies or the main prompt.
 - The language catalog drives language selection, not a hardcoded two-way switch.
   Active conversation language governs STT, LLM instructions and TTS normalization.
 
+XCTest suites asserting localized text must initialize `L10n` with an explicit
+catalog directory and language, just as app startup does with bundle resources.
+Do not rely on the process-wide catalog left by a previously executed test.
+
 ## Skills
 
 Bundled defaults live in `services/voice-backend/skills`. Installed, editable

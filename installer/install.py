@@ -76,8 +76,10 @@ def certificates(directory: Path, ip: str):
     if any(p.exists() for p in files):
         if not all(p.is_file() for p in files):
             raise RuntimeError("Incomplete TLS identity; restore its files before retrying")
-        run(["openssl", "verify", "-CAfile", files[1], files[3]], stdout=subprocess.DEVNULL)
-        run(["openssl", "x509", "-in", files[3], "-checkip", ip, "-noout"], stdout=subprocess.DEVNULL)
+        # x509 -checkip can print a mismatch yet exit zero on OpenSSL 3.
+        # Verification must fail closed on the IP identity and server purpose.
+        run(["openssl", "verify", "-CAfile", files[1], "-purpose", "sslserver",
+             "-verify_ip", ip, files[3]], stdout=subprocess.DEVNULL)
         run(["openssl", "x509", "-in", files[3], "-checkend", "86400", "-noout"], stdout=subprocess.DEVNULL)
         pub_cert = output(["openssl", "x509", "-in", files[3], "-pubkey", "-noout"])
         pub_key = output(["openssl", "pkey", "-in", files[2], "-pubout"])

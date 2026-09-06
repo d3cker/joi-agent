@@ -1,0 +1,13 @@
+{
+  "stt": {
+    "repository": "dropbox-dash/faster-whisper-large-v3-turbo",
+    "revision": "0a363e9161cbc7ed1431c9597a8ceaf0c4f78fcf",
+    "files": ["model.bin", "config.json", "tokenizer.json", "preprocessor_config.json"]
+  },
+  "tts": {
+    "repository": "bosonai/higgs-tts-3-4b",
+    "revision": "239f63fb7b02b1aa085f98d9efae5e35cc5523e8",
+    "files": ["model.safetensors", "config.json"],
+    "sha256": {"model.safetensors": "2f7965264c360b38180885006944aa16bd1de20f4e6cff79f6473bfcf8ae3d5a"}
+  }
+}

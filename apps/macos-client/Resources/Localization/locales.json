@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "default_language": "en",
+  "languages": [
+    {"id": "en", "name": "English"},
+    {"id": "pl", "name": "Polski"}
+  ]
+}

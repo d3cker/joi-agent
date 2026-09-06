@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "VoiceAgent używa mikrofonu do prowadzenia lokalnej rozmowy głosowej.";
+"NSLocalNetworkUsageDescription" = "VoiceAgent łączy się z lokalnym serwerem mowy w Twojej sieci LAN.";

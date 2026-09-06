@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "revision": 1,
+  "enabled": [
+    "open-terminal-work",
+    "project-engineering",
+    "skill-authoring",
+    "web-research"
+  ]
+}

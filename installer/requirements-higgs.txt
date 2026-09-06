@@ -1,0 +1,10 @@
+# Known serving release. Transitive resolution is recorded in each install receipt.
+# These are constraints, NOT a claim of a complete, hash-locked environment.
+sglang-omni==0.1.4
+sglang==0.5.18
+flashinfer-python==0.6.17
+# Keep the whole private compiler on CUDA 13.0 / PTX 9.0, not a 13.4 prerelease.
+nvidia-cuda-nvcc==13.0.88
+nvidia-cuda-crt==13.0.88
+nvidia-cuda-cccl==13.0.85
+nvidia-nvvm==13.0.88

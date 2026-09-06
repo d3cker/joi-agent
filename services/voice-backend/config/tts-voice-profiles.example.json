@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "profiles": {
+    "en": {
+      "audio_path": "/absolute/path/to/your/english-reference.wav",
+      "text": "The exact transcript of your English reference recording."
+    },
+    "pl": {
+      "audio_path": "/absolute/path/to/your/polish-reference.wav",
+      "text": "Jasne, już się tym zajmuję."
+    }
+  }
+}

@@ -1,0 +1,92 @@
+name: Product release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  backend:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify release identity
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python3 -c 'import os,pathlib; assert os.environ["RELEASE_TAG"] == "v" + pathlib.Path("VERSION").read_text().strip()'
+      - run: make setup test-backend
+      - run: python3 scripts/check_repository.py
+      - run: make package-backend
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backend
+          path: outputs/release/Joi-*-backend.tar.gz
+          if-no-files-found: error
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: JOI_STRICT_TESTS=1 make test-macos
+      - name: Import optional signing identity
+        env:
+          JOI_CERTIFICATE_P12: ${{ secrets.JOI_CERTIFICATE_P12 }}
+          JOI_CERTIFICATE_PASSWORD: ${{ secrets.JOI_CERTIFICATE_PASSWORD }}
+          JOI_SIGN_IDENTITY: ${{ secrets.JOI_SIGN_IDENTITY }}
+        run: python3 scripts/apple_signing.py prepare
+      - name: Build and sign
+        env:
+          JOI_SIGN_IDENTITY: ${{ secrets.JOI_SIGN_IDENTITY }}
+        run: make build
+      - name: Optional Apple notarization
+        env:
+          JOI_APPLE_ID: ${{ secrets.JOI_APPLE_ID }}
+          JOI_APPLE_PASSWORD: ${{ secrets.JOI_APPLE_PASSWORD }}
+          JOI_APPLE_TEAM: ${{ secrets.JOI_APPLE_TEAM }}
+        run: python3 scripts/apple_signing.py notarize
+      - run: python3 scripts/release.py macos
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ matrix.arch }}
+          path: outputs/release/Joi-*-macOS-*.zip
+          if-no-files-found: error
+      - name: Remove temporary signing keychain
+        if: always()
+        run: python3 scripts/apple_signing.py cleanup
+  publish:
+    needs: [backend, macos]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          path: outputs/release
+          merge-multiple: true
+      - run: python3 scripts/release.py manifest
+      - name: Publish verified artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: >-
+          gh release create "$RELEASE_TAG" outputs/release/* --verify-tag
+          --title "Joi $RELEASE_TAG" --notes-file docs/RELEASE_NOTES.md

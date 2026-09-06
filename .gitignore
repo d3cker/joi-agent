@@ -1,0 +1,31 @@
+.DS_Store
+.env
+.venv/
+.venv*/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.py[cod]
+*.egg-info/
+
+# Swift Package Manager / Xcode
+.build/
+.swiftpm/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+
+# Local runtime artifacts
+*.log
+work/
+runtime/
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+outputs/
+dist/
+*.connection.json
+*.key
+*.p12
+*.pem
+installer-state/

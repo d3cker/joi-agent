@@ -1,0 +1,12 @@
+# GPU runtime stays separate from the SGLang/PyTorch environment.
+fastapi==0.141.1
+httpx==0.28.1
+markdown-it-py==4.2.0
+uvicorn[standard]==0.52.4
+faster-whisper==1.2.1
+ctranslate2==4.6.2
+onnxruntime==1.23.2
+numpy==2.3.5
+nvidia-cublas-cu12==12.8.4.1
+nvidia-cudnn-cu12==9.10.2.21
+huggingface-hub==1.30.0

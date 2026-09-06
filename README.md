@@ -1,5 +1,7 @@
 # Joi — a network-first voice agent
 
+![Joi — a holographic companion in a neon-lit city](img/joi.png)
+
 Joi is a native macOS voice client connected to a self-hosted Ubuntu speech
 backend. Models do not need to run on your Mac: the application is designed for
 a private network, with an independently hosted OpenAI-compatible LLM.
